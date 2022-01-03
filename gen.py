@@ -155,7 +155,7 @@ def add_decoration(image: Image.Image, decorations: Iterable[Side | Corner]) -> 
 
 
 all_decorations: list[Side | Corner] = [*Side, *Corner]
-tileset: list[Image.Image] = []
+tileset: list[Image.Image] = [base]
 for size in range(1, len(all_decorations) + 1):
     for combo in combinations(all_decorations, size):
         if filter_combinations(combo):
@@ -177,6 +177,4 @@ for i, (x, y) in enumerate(product(range(row_cols), repeat=2)):
     except IndexError:
         break
 
-sheet.resize((sheet_size[0] * output_scale, sheet_size[1] * output_scale), Image.NEAREST).save(
-    os.path.join("tileset", "tileset.png")
-)
+sheet.resize(sheet_size, Image.NEAREST).save(os.path.join("tileset", "tileset.png"))
