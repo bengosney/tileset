@@ -1,6 +1,10 @@
 
-# Created by https://www.toptal.com/developers/gitignore/api/visualstudiocode,python
-# Edit at https://www.toptal.com/developers/gitignore?templates=visualstudiocode,python
+# Created by https://www.toptal.com/developers/gitignore/api/python,visualstudiocode,direnv
+# Edit at https://www.toptal.com/developers/gitignore?templates=python,visualstudiocode,direnv
+
+### direnv ###
+.direnv
+.envrc
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
@@ -161,6 +165,4 @@ cython_debug/
 # Support for Project snippet scope
 !.vscode/*.code-snippets
 
-# End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,python
-
-*.png
+# End of https://www.toptal.com/developers/gitignore/api/python,visualstudiocode,direnv
