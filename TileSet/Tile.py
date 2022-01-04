@@ -41,6 +41,7 @@ class Tile:
                 self.image.putpixel((x, y), get_colour(value, self.dark, self.light))
 
     def add_corner(self, corner: Corner) -> Image.Image:
+        self.decorations.append(corner)
         tmp = self.image.rotate(corner.value)
 
         for x in range(self.decoration_size):
@@ -51,6 +52,7 @@ class Tile:
         return tmp.rotate(-corner.value)
 
     def add_border(self, image: Image.Image, size: int, side: Side) -> Image.Image:
+        self.decorations.append(side)
         tmp = image.rotate(side.value)
 
         for x in range(self.size[0]):
@@ -61,6 +63,7 @@ class Tile:
         return tmp.rotate(-side.value)
 
     def add_top(self, size: int) -> None:
+        self.decorations.append(Side.top)
         sand_light = (194, 178, 128)
         sand_dark = (174, 160, 115)
 
@@ -74,9 +77,11 @@ class Tile:
     @property
     def name(self) -> str:
         if len(self.decorations) == 0:
-            return f"center_s{self.seed}"
+            name = "center"
         else:
-            return "nope"
+            name = "-".join(d.name for d in self.decorations)
+
+        return f"{name}_s{self.seed}"
 
     def save(self, scale: int = 1) -> None:
         path = os.path.join("tiles")
