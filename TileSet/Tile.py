@@ -17,7 +17,7 @@ class Tile:
     def __init__(self, size: Size, light: RGB, dark: RGB, darker: RGB, noise_scale: float = 1, seed: int = 1):
         self.image: Image.Image = Image.new("RGBA", size, (0, 0, 0, 0))
         self.size: Size = size
-        self.decoration_size: int = size[0] // 4
+        self.decoration_size: int = size[0] // 8
         self.noise_scale: float = noise_scale
 
         self.light: RGB = light
@@ -40,7 +40,7 @@ class Tile:
                 value = self._get_noise(x, y)
                 self.image.putpixel((x, y), get_colour(value, self.dark, self.light))
 
-    def add_corner(self, corner: Corner) -> Image.Image:
+    def add_corner(self, corner: Corner) -> None:
         self.decorations.append(corner)
         tmp = self.image.rotate(corner.value)
 
@@ -49,23 +49,24 @@ class Tile:
                 value = self._get_noise(x, y)
                 tmp.putpixel((x, y), get_colour(value, self.darker, self.dark))
 
-        return tmp.rotate(-corner.value)
+        self.image = tmp.rotate(-corner.value)
 
-    def add_border(self, image: Image.Image, size: int, side: Side) -> Image.Image:
+    def add_border(self, side: Side) -> None:
         self.decorations.append(side)
-        tmp = image.rotate(side.value)
+        tmp = self.image.rotate(side.value)
 
         for x in range(self.size[0]):
             for y in range(self.decoration_size):
                 value = self._get_noise(x, y)
                 tmp.putpixel((x, y), get_colour(value, self.darker, self.dark))
 
-        return tmp.rotate(-side.value)
+        self.image = tmp.rotate(-side.value)
 
-    def add_top(self, size: int) -> None:
+    def add_top(self) -> None:
         self.decorations.append(Side.top)
         sand_light = (194, 178, 128)
         sand_dark = (174, 160, 115)
+        size = self.decoration_size * 2
 
         wave = list(get_wave(self.size[0], self.noise, (0, size)))
         for x in range(self.size[0]):
