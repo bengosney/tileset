@@ -10,5 +10,5 @@ numpy==1.22.0
     # via opensimplex
 opensimplex==0.4
     # via -r requirements.in
-pillow==9.0.0
+pillow==9.3.0
     # via -r requirements.in
