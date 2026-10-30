@@ -63,30 +63,30 @@ def tile_options(func: Callable) -> Callable:
         click.option("--seed", type=int, default=1, help="Noise seed."),
         click.option("--noise-scale", type=float, default=1.0, help="Noise frequency."),
         click.option(
-            "--light", type=HexColour(), default="#a1c4f0", help="Lightest fill colour."
+            "--light", type=HexColour(), default="#8b5e3c", help="Lightest fill colour."
         ),
         click.option(
             "--dark",
             type=HexColour(),
-            default="#3c4147",
+            default="#4e3524",
             help="Darkest fill colour, lightest border colour.",
         ),
         click.option(
             "--darker",
             type=HexColour(),
-            default="#1b232b",
+            default="#2b1c13",
             help="Darkest border colour.",
         ),
         click.option(
             "--top-light",
             type=HexColour(),
-            default="#c2b280",
+            default="#7ec850",
             help="Lightest top colour.",
         ),
         click.option(
             "--top-dark",
             type=HexColour(),
-            default="#aea073",
+            default="#4c9a32",
             help="Darkest top colour.",
         ),
     ]

@@ -23,8 +23,8 @@ class Tile:
         darker: RGB,
         noise_scale: float = 1,
         seed: int = 1,
-        top_light: RGB = (194, 178, 128),
-        top_dark: RGB = (174, 160, 115),
+        top_light: RGB = (126, 200, 80),
+        top_dark: RGB = (76, 154, 50),
     ):
         self.image: Image.Image = Image.new("RGBA", size, (0, 0, 0, 0))
         self.size: Size = size
