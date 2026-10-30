@@ -13,8 +13,6 @@ repos:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-merge-conflict
-      - id: file-contents-sorter
-        files: requirements.in
   - repo: https://github.com/asottile/pyupgrade
     rev: v2.31.0
     hooks:
@@ -50,11 +48,6 @@ repos:
     rev: 3.9.2
     hooks:
       - id: flake8
-  - repo: https://github.com/jazzband/pip-tools
-    rev: 6.4.0
-    hooks:
-      - id: pip-compile
-        files: ^(setup\.py|requirements.txt|requirements.in)$
   - repo: https://github.com/Lucas-C/pre-commit-hooks-go
     rev: v1.0.1
     hooks:
