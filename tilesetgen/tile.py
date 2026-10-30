@@ -1,5 +1,6 @@
 # Standard Library
 import os
+from collections.abc import Iterable
 
 # Third Party
 # import opensimplex
@@ -7,14 +8,24 @@ from opensimplex import OpenSimplex
 from PIL import Image
 
 # Locals
-from .Corner import Corner
-from .Side import Side
-from .Types import RGB, Decorations, Number, Size
-from .Utils import get_colour, get_wave
+from .corner import Corner
+from .side import Side
+from .types import RGB, Decorations, Number, Size
+from .utils import get_colour, get_wave
 
 
 class Tile:
-    def __init__(self, size: Size, light: RGB, dark: RGB, darker: RGB, noise_scale: float = 1, seed: int = 1):
+    def __init__(
+        self,
+        size: Size,
+        light: RGB,
+        dark: RGB,
+        darker: RGB,
+        noise_scale: float = 1,
+        seed: int = 1,
+        sand_light: RGB = (194, 178, 128),
+        sand_dark: RGB = (174, 160, 115),
+    ):
         self.image: Image.Image = Image.new("RGBA", size, (0, 0, 0, 0))
         self.size: Size = size
         self.decoration_size: int = size[0] // 8
@@ -23,6 +34,8 @@ class Tile:
         self.light: RGB = light
         self.dark: RGB = dark
         self.darker: RGB = darker
+        self.sand_light: RGB = sand_light
+        self.sand_dark: RGB = sand_dark
 
         self.noise: OpenSimplex = OpenSimplex(seed)
         self.seed: int = seed
@@ -64,8 +77,6 @@ class Tile:
 
     def add_top(self) -> None:
         self.decorations.append(Side.top)
-        sand_light = (194, 178, 128)
-        sand_dark = (174, 160, 115)
         size = self.decoration_size * 2
 
         wave = list(get_wave(self.size[0], self.noise, (0, size)))
@@ -73,7 +84,23 @@ class Tile:
             max_y = int(wave[x]) + size // 2
             for y in range(max_y):
                 value = self._get_noise(x, y)
-                self.image.putpixel((x, y), get_colour(value, sand_dark, sand_light))
+                self.image.putpixel(
+                    (x, y), get_colour(value, self.sand_dark, self.sand_light)
+                )
+
+    def decorate(self, decorations: Iterable[Decorations]) -> None:
+        decorations = list(decorations)
+        for decoration in decorations:
+            if isinstance(decoration, Corner):
+                self.add_corner(decoration)
+            elif decoration != Side.top:
+                self.add_border(decoration)
+
+        # The top is drawn last so it sits over the other decorations
+        if Side.top in decorations:
+            self.add_top()
+
+        self.decorations = decorations
 
     @property
     def name(self) -> str:
@@ -84,8 +111,10 @@ class Tile:
 
         return f"{name}_s{self.seed}"
 
-    def save(self, scale: int = 1) -> None:
-        path = os.path.join("tiles")
-        os.makedirs(path, exist_ok=True)
+    def save(self, output: str = "tiles", scale: int = 1) -> str:
+        os.makedirs(output, exist_ok=True)
+        path = os.path.join(output, f"{self.name}.png")
         size = (self.size[0] * scale, self.size[1] * scale)
-        self.image.resize(size, Image.NEAREST).save(os.path.realpath(os.path.join(path, f"{self.name}.png")))
+        self.image.resize(size, Image.NEAREST).save(path)
+
+        return path

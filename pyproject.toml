@@ -1,30 +1,41 @@
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = [ "setuptools", "wheel" ]
+
 [project]
-name = "TilesetGen"
+name = "tilesetgen"
 version = "0.0.1"
 description = "Tileset Generator"
-authors = [{ name = "Ben Gosney", email = "bengosney@googlemail.com" }]
+authors = [ { name = "Ben Gosney", email = "bengosney@googlemail.com" } ]
 requires-python = ">=3.10"
+classifiers = [
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: 3.15",
+]
 dependencies = [
-    "click",
-    "opensimplex",
-    "pillow",
+  "click",
+  "opensimplex",
+  "pillow",
 ]
-
-[project.optional-dependencies]
-dev = [
-    "black",
-    "icecream",
-    "pre-commit",
-    "pytest",
+optional-dependencies.dev = [
+  "black",
+  "icecream",
+  "pre-commit",
+  "pytest",
 ]
+scripts.tileset = "tilesetgen.cli:cli"
 
-[build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
+[tool.setuptools]
+packages = [ "tilesetgen" ]
 
 [tool.black]
+target-version = [ "py310" ]
 line-length = 128
-target-version = ['py310']
 
 [tool.pycln]
 all = true

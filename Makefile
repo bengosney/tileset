@@ -75,6 +75,7 @@ clean: ## Remove all build files
 $(VENV_LOCK): requirements.txt $(REQS)
 	@echo "Installing $(filter-out $<,$^)"
 	$(UV_PATH) pip sync $(filter-out $<,$^)
+	$(UV_PATH) pip install --no-deps -e .
 	@touch $@
 
 install: $(VENV_LOCK) ## Install development requirements (default)

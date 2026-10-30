@@ -1,6 +1,6 @@
 # Locals
-from .Corner import Corner
-from .Side import Side
+from .corner import Corner
+from .side import Side
 
 Size = tuple[int, int]
 RGB = tuple[int, int, int]

@@ -1,12 +1,12 @@
 # Standard Library
 import math
-from typing import Iterator
+from collections.abc import Iterator
 
 # Third Party
 from opensimplex import OpenSimplex
 
 # Locals
-from .Types import RGB, Number, Point, Range
+from .types import RGB, Number, Point, Range
 
 
 def remap(x: Number, from_range: Range, to_range: Range) -> Number:
