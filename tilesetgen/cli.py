@@ -13,8 +13,8 @@ import click
 # Locals
 from .generator import (
     ALL_DECORATIONS,
+    encode_sheet,
     filter_combinations,
-    make_sheet,
     valid_combinations,
 )
 from .tile import Tile
@@ -125,6 +125,9 @@ def load_config(path: Path) -> dict[str, Any]:
     if unknown := sorted(settings.keys() - known):
         raise click.ClickException(f"{path}: unknown settings: {', '.join(unknown)}")
 
+    if isinstance(settings.get("sheet_format"), str):
+        settings["sheet_format"] = [settings["sheet_format"]]
+
     # Relative to the config file so results don't depend on where it's run from
     if "output" in settings:
         settings["output"] = str(path.parent / str(settings["output"]))
@@ -175,17 +178,33 @@ def init() -> None:
 
 @cli.command()
 @tile_options
-def generate(output: str, scale: int, **options) -> None:
-    """Generate every valid tile and a combined sheet at native resolution."""
+@click.option(
+    "--sheet-format",
+    type=click.Choice(["png", "16bpp"]),
+    multiple=True,
+    default=["png"],
+    help="Sheet file format, repeat for several. 16bpp is a 128x128 PicoSystem spritesheet.",
+)
+def generate(output: str, scale: int, sheet_format: tuple[str, ...], **options) -> None:
+    """Generate every valid tile and combined sheets at native resolution."""
     tiles = [make_tile(combo, **options) for combo in valid_combinations()]
+
+    try:
+        sheets = {
+            os.path.join(output, f"tileset.{name}"): encode_sheet(tiles, name)
+            for name in sheet_format
+        }
+    except ValueError as error:
+        raise click.UsageError(str(error)) from error
+
     for tile in tiles:
         tile.save(output, scale)
 
     os.makedirs(output, exist_ok=True)
-    sheet_path = os.path.join(output, f"tileset_s{options['seed']}.png")
-    make_sheet(tiles).save(sheet_path)
+    for path, data in sheets.items():
+        Path(path).write_bytes(data)
 
-    click.echo(f"Wrote {len(tiles)} tiles and {sheet_path}")
+    click.echo(f"Wrote {len(tiles)} tiles and {', '.join(sheets)}")
 
 
 @cli.command()

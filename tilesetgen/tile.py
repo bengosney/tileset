@@ -38,7 +38,6 @@ class Tile:
         self.sand_dark: RGB = sand_dark
 
         self.noise: OpenSimplex = OpenSimplex(seed)
-        self.seed: int = seed
 
         self.decorations: list[Decorations] = []
 
@@ -105,11 +104,9 @@ class Tile:
     @property
     def name(self) -> str:
         if len(self.decorations) == 0:
-            name = "center"
-        else:
-            name = "-".join(d.name for d in self.decorations)
+            return "center"
 
-        return f"{name}_s{self.seed}"
+        return "-".join(d.name for d in self.decorations)
 
     def save(self, output: str = "tiles", scale: int = 1) -> str:
         os.makedirs(output, exist_ok=True)

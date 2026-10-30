@@ -1,6 +1,7 @@
 # Standard Library
 import math
 from collections.abc import Iterable, Iterator
+from io import BytesIO
 from itertools import combinations, product
 
 # Third Party
@@ -13,6 +14,9 @@ from .tile import Tile
 from .types import Decorations
 
 ALL_DECORATIONS: list[Decorations] = [*Side, *Corner]
+
+PICOSYSTEM_SPRITE_SIZE = 8
+PICOSYSTEM_SHEET_SIZE = 128
 
 
 def filter_combinations(decorations: Iterable[Decorations]) -> bool:
@@ -58,3 +62,50 @@ def make_sheet(tiles: list[Tile]) -> Image.Image:
         sheet.paste(tile.image, (x * tile_width, y * tile_height))
 
     return sheet
+
+
+def make_picosystem_sheet(tiles: list[Tile]) -> Image.Image:
+    tile_size = tiles[0].size[0]
+    if tile_size % PICOSYSTEM_SPRITE_SIZE:
+        raise ValueError(
+            f"PicoSystem sprites are on an {PICOSYSTEM_SPRITE_SIZE}px grid, "
+            f"so the tile size must be a multiple of {PICOSYSTEM_SPRITE_SIZE}, not {tile_size}."
+        )
+
+    columns = PICOSYSTEM_SHEET_SIZE // tile_size
+    if len(tiles) > columns**2:
+        raise ValueError(
+            f"{len(tiles)} tiles of {tile_size}px don't fit in a "
+            f"{PICOSYSTEM_SHEET_SIZE}x{PICOSYSTEM_SHEET_SIZE} PicoSystem sheet, use a smaller tile size."
+        )
+
+    # Row by row, as sprite() counts its indexes left to right then down
+    size = (PICOSYSTEM_SHEET_SIZE, PICOSYSTEM_SHEET_SIZE)
+    sheet = Image.new("RGBA", size, (0, 0, 0, 0))
+    for i, tile in enumerate(tiles):
+        y, x = divmod(i, columns)
+        sheet.paste(tile.image, (x * tile_size, y * tile_size))
+
+    return sheet
+
+
+def encode_16bpp(image: Image.Image) -> bytes:
+    """Encode as big endian AAAARRRRGGGGBBBB, PicoSystem's Buffer format."""
+    raw = image.convert("RGBA").tobytes()
+    channels = zip(raw[0::4], raw[1::4], raw[2::4], raw[3::4])
+
+    return bytes(
+        byte
+        for r, g, b, a in channels
+        for byte in (a & 0xF0 | r >> 4, g & 0xF0 | b >> 4)
+    )
+
+
+def encode_sheet(tiles: list[Tile], sheet_format: str) -> bytes:
+    if sheet_format == "16bpp":
+        return encode_16bpp(make_picosystem_sheet(tiles))
+
+    buffer = BytesIO()
+    make_sheet(tiles).save(buffer, format="PNG")
+
+    return buffer.getvalue()
