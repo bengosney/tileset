@@ -7,10 +7,9 @@ name = "tilesetgen"
 version = "0.0.1"
 description = "Tileset Generator"
 authors = [ { name = "Ben Gosney", email = "bengosney@googlemail.com" } ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 classifiers = [
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
