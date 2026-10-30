@@ -78,16 +78,16 @@ def tile_options(func: Callable) -> Callable:
             help="Darkest border colour.",
         ),
         click.option(
-            "--sand-light",
+            "--top-light",
             type=HexColour(),
             default="#c2b280",
-            help="Lightest sand colour.",
+            help="Lightest top colour.",
         ),
         click.option(
-            "--sand-dark",
+            "--top-dark",
             type=HexColour(),
             default="#aea073",
-            help="Darkest sand colour.",
+            help="Darkest top colour.",
         ),
     ]
     for option in reversed(options):

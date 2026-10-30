@@ -23,8 +23,8 @@ class Tile:
         darker: RGB,
         noise_scale: float = 1,
         seed: int = 1,
-        sand_light: RGB = (194, 178, 128),
-        sand_dark: RGB = (174, 160, 115),
+        top_light: RGB = (194, 178, 128),
+        top_dark: RGB = (174, 160, 115),
     ):
         self.image: Image.Image = Image.new("RGBA", size, (0, 0, 0, 0))
         self.size: Size = size
@@ -34,8 +34,8 @@ class Tile:
         self.light: RGB = light
         self.dark: RGB = dark
         self.darker: RGB = darker
-        self.sand_light: RGB = sand_light
-        self.sand_dark: RGB = sand_dark
+        self.top_light: RGB = top_light
+        self.top_dark: RGB = top_dark
 
         self.noise: OpenSimplex = OpenSimplex(seed)
 
@@ -84,7 +84,7 @@ class Tile:
             for y in range(max_y):
                 value = self._get_noise(x, y)
                 self.image.putpixel(
-                    (x, y), get_colour(value, self.sand_dark, self.sand_light)
+                    (x, y), get_colour(value, self.top_dark, self.top_light)
                 )
 
     def decorate(self, decorations: Iterable[Decorations]) -> None:
