@@ -15,6 +15,7 @@ import click
 # Locals
 from .generator import (
     ALL_DECORATIONS,
+    SIMPLE_COMBINATIONS,
     encode_sheet,
     filter_combinations,
     valid_combinations,
@@ -187,9 +188,17 @@ def init() -> None:
     default=["png"],
     help="Sheet file format, repeat for several. 16bpp is a 128x128 PicoSystem spritesheet.",
 )
-def generate(output: str, scale: int, sheet_format: tuple[str, ...], **options) -> None:
+@click.option(
+    "--simple/--no-simple",
+    default=False,
+    help="Only generate the center and top tiles.",
+)
+def generate(
+    output: str, scale: int, sheet_format: tuple[str, ...], simple: bool, **options
+) -> None:
     """Generate every valid tile and combined sheets at native resolution."""
-    tiles = [make_tile(combo, **options) for combo in valid_combinations()]
+    combos = SIMPLE_COMBINATIONS if simple else valid_combinations()
+    tiles = [make_tile(combo, **options) for combo in combos]
 
     try:
         sheets = {

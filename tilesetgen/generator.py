@@ -14,6 +14,7 @@ from .tile import Tile
 from .types import Decorations
 
 ALL_DECORATIONS: list[Decorations] = [*Side, *Corner]
+SIMPLE_COMBINATIONS: list[tuple[Decorations, ...]] = [(), (Side.top,)]
 
 PICOSYSTEM_SPRITE_SIZE = 8
 PICOSYSTEM_SHEET_SIZE = 128

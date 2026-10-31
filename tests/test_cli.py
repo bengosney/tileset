@@ -368,3 +368,61 @@ def test_view_reports_ffplay_failures(
 
     assert result.exit_code == 1
     assert message in result.output
+
+
+def test_simple_only_writes_center_and_top(tmp_path: Path):
+    simple = tmp_path / "simple"
+    full = tmp_path / "full"
+
+    result = run("generate", "--simple", "-o", simple, "--size", "16", "--seed", "3")
+
+    assert result.exit_code == 0, result.output
+    assert run("generate", "-o", full, "--size", "16", "--seed", "3").exit_code == 0
+    assert sorted(path.name for path in simple.iterdir()) == [
+        "center.png",
+        "tileset.png",
+        "top.png",
+    ]
+    for name in ("center.png", "top.png"):
+        assert (simple / name).read_bytes() == (full / name).read_bytes()
+
+
+def test_simple_16bpp_sheet_fits_the_default_size_with_top_as_the_next_sprite(
+    tmp_path: Path,
+):
+    result = run(
+        "generate",
+        "--simple",
+        "-o",
+        tmp_path,
+        "--sheet-format",
+        "16bpp",
+        "--scale",
+        "1",
+    )
+
+    assert result.exit_code == 0, result.output
+    data = (tmp_path / "tileset.16bpp").read_bytes()
+    assert len(data) == 128 * 128 * 2
+
+    top = Image.open(tmp_path / "top.png")
+    expected = encode_16bpp(top.crop((0, 0, 32, 1)))
+    assert data[32 * 2 : 64 * 2] == expected
+    assert data[64 * 2 : 65 * 2] == b"\x00\x00"
+
+
+def test_simple_can_be_set_in_config_and_overridden(tmp_path: Path):
+    (tmp_path / "tileset.toml").write_text('simple = true\noutput = "out"\nsize = 8\n')
+
+    assert run("generate").exit_code == 0
+    assert len(list((tmp_path / "out").glob("*.png"))) == 3
+
+    assert run("generate", "--no-simple").exit_code == 0
+    tile_count = len(list(valid_combinations()))
+    assert len(list((tmp_path / "out").glob("*.png"))) == tile_count + 1
+
+
+def test_init_config_includes_simple(tmp_path: Path):
+    assert run("init").exit_code == 0
+    assert "simple = false" in (tmp_path / "tileset.toml").read_text()
+    assert run("tile").exit_code == 0
