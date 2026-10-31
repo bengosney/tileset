@@ -1,4 +1,5 @@
 # Standard Library
+import subprocess
 from pathlib import Path
 
 # Third Party
@@ -283,3 +284,87 @@ def test_no_sheets_are_written_if_one_format_cannot_hold_the_tiles(tmp_path: Pat
 
     assert result.exit_code == 2
     assert list(tmp_path.iterdir()) == []
+
+
+@pytest.fixture
+def ffplay_calls(monkeypatch: pytest.MonkeyPatch) -> list[list[str]]:
+    calls: list[list[str]] = []
+    monkeypatch.setattr(
+        "tilesetgen.cli.subprocess.run", lambda command, check: calls.append(command)
+    )
+    return calls
+
+
+def test_view_plays_the_sheet_from_the_config_output(
+    tmp_path: Path, ffplay_calls: list[list[str]]
+):
+    write_config(tmp_path, size=16, sheet_format="16bpp", output="out", scale=10)
+    assert run("generate").exit_code == 0
+
+    result = run("view")
+
+    assert result.exit_code == 0, result.output
+    command = ffplay_calls[0]
+    assert command[0] == "ffplay"
+    assert "128x128" in command
+    assert "scale=512:512:flags=neighbor" in command
+    assert command[-1].endswith("tileset.16bpp")
+    assert Path(command[-1]).parent == tmp_path / "out"
+
+
+def test_view_takes_a_path_and_works_out_its_size(
+    tmp_path: Path, ffplay_calls: list[list[str]]
+):
+    path = tmp_path / "raycaster.16bpp"
+    path.write_bytes(bytes(160 * 160 * 2))
+
+    result = run("view", path, "--zoom", "2")
+
+    assert result.exit_code == 0, result.output
+    assert "160x160" in ffplay_calls[0]
+    assert "scale=320:320:flags=neighbor" in ffplay_calls[0]
+
+
+@pytest.mark.parametrize("content", [b"", bytes(100)])
+def test_view_rejects_files_that_are_not_square_16bpp(
+    tmp_path: Path, ffplay_calls: list[list[str]], content: bytes
+):
+    path = tmp_path / "bad.16bpp"
+    path.write_bytes(content)
+
+    assert run("view", path).exit_code == 1
+    assert ffplay_calls == []
+
+
+def test_view_reports_a_missing_sheet(ffplay_calls: list[list[str]]):
+    result = run("view")
+
+    assert result.exit_code == 1
+    assert "--sheet-format 16bpp" in result.output
+    assert ffplay_calls == []
+
+
+@pytest.mark.parametrize(
+    "error, message",
+    [
+        (FileNotFoundError(), "install ffmpeg"),
+        (subprocess.CalledProcessError(3, "ffplay"), "code 3"),
+    ],
+)
+def test_view_reports_ffplay_failures(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    error: Exception,
+    message: str,
+):
+    def fail(command: list[str], check: bool) -> None:
+        raise error
+
+    monkeypatch.setattr("tilesetgen.cli.subprocess.run", fail)
+    path = tmp_path / "sheet.16bpp"
+    path.write_bytes(bytes(8 * 8 * 2))
+
+    result = run("view", path)
+
+    assert result.exit_code == 1
+    assert message in result.output

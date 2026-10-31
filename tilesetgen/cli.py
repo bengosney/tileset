@@ -1,7 +1,9 @@
 # Standard Library
 import json
+import math
 import os
 import re
+import subprocess
 import tomllib
 from collections.abc import Callable
 from pathlib import Path
@@ -157,7 +159,7 @@ def cli(ctx: click.Context, config_path: Path | None) -> None:
 
     click.echo(f"Using {config_path}", err=True)
     settings = load_config(config_path)
-    ctx.default_map = {"generate": settings, "tile": settings}
+    ctx.default_map = {"generate": settings, "tile": settings, "view": settings}
 
 
 @cli.command()
@@ -219,3 +221,59 @@ def tile(decorations: tuple[str, ...], output: str, scale: int, **options) -> No
         raise click.UsageError("A corner can't be combined with a side that covers it.")
 
     click.echo(make_tile(combo, **options).save(output, scale))
+
+
+@cli.command()
+@click.argument(
+    "path",
+    required=False,
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+)
+@click.option(
+    "-o",
+    "--output",
+    type=click.Path(file_okay=False),
+    default="tileset",
+    help="Directory holding tileset.16bpp, used when no PATH is given.",
+)
+@click.option(
+    "--zoom", type=click.IntRange(min=1), default=4, help="Display size multiplier."
+)
+def view(path: Path | None, output: str, zoom: int) -> None:
+    """Display a square 16bpp spritesheet with ffplay, transparency shows as black."""
+    path = path or Path(output) / "tileset.16bpp"
+    if not path.is_file():
+        raise click.ClickException(
+            f"{path} doesn't exist, generate it with --sheet-format 16bpp."
+        )
+
+    file_size = path.stat().st_size
+    size = math.isqrt(file_size // 2)
+    if size == 0 or size * size * 2 != file_size:
+        raise click.ClickException(f"{path} isn't a square 16bpp image.")
+
+    command = [
+        "ffplay",
+        "-loglevel",
+        "error",
+        "-window_title",
+        path.name,
+        "-f",
+        "rawvideo",
+        "-pixel_format",
+        "rgb444be",
+        "-video_size",
+        f"{size}x{size}",
+        "-vf",
+        f"scale={size * zoom}:{size * zoom}:flags=neighbor",
+        "-i",
+        str(path),
+    ]
+    try:
+        subprocess.run(command, check=True)
+    except FileNotFoundError as error:
+        raise click.ClickException("ffplay not found, install ffmpeg.") from error
+    except subprocess.CalledProcessError as error:
+        raise click.ClickException(
+            f"ffplay exited with code {error.returncode}."
+        ) from error

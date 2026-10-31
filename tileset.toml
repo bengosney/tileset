@@ -1,0 +1,11 @@
+output = "tileset"
+size = 16
+scale = 10
+seed = 1
+noise-scale = 1.0
+light = "#8b5e3c"
+dark = "#4e3524"
+darker = "#2b1c13"
+top-light = "#7ec850"
+top-dark = "#4c9a32"
+sheet-format = ["png"]
